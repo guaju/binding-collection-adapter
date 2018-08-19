@@ -1,6 +1,8 @@
 package me.tatarka.bindingcollectionadapter2;
 
 import androidx.databinding.BindingAdapter;
+import androidx.databinding.DataBindingUtil;
+import androidx.databinding.ViewDataBinding;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.List;
@@ -30,6 +32,13 @@ public class BindingRecyclerViewAdapters {
         adapter.setViewHolderFactory(viewHolderFactory);
 
         if (oldAdapter != adapter) {
+            if (adapter.getLifecycleOwner() == null) {
+                ViewDataBinding binding = DataBindingUtil.findBinding(recyclerView);
+                if (binding != null) {
+                    adapter.setLifecycleOwner(Utils.getLifecycleOwner(binding));
+                }
+            }
+
             recyclerView.setAdapter(adapter);
         }
     }

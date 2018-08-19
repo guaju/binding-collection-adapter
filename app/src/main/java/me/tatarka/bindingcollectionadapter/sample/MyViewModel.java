@@ -5,6 +5,7 @@ import androidx.databinding.ObservableArrayList;
 import androidx.databinding.ObservableList;
 import androidx.databinding.ViewDataBinding;
 import androidx.recyclerview.widget.RecyclerView;
+
 import android.view.View;
 
 import me.tatarka.bindingcollectionadapter2.BindingListViewAdapter;
@@ -15,7 +16,6 @@ import me.tatarka.bindingcollectionadapter2.collections.MergeObservableList;
 import me.tatarka.bindingcollectionadapter2.itembindings.OnItemBindClass;
 
 public class MyViewModel extends ViewModel {
-    private boolean checkable;
 
     public final ObservableList<ItemViewModel> items = new ObservableArrayList<>();
 
@@ -34,12 +34,14 @@ public class MyViewModel extends ViewModel {
 
     public MyViewModel() {
         for (int i = 0; i < 3; i++) {
-            items.add(new ItemViewModel(i, checkable));
+            items.add(new ItemViewModel(i));
         }
     }
 
     public void setCheckable(boolean checkable) {
-        this.checkable = checkable;
+        for (ItemViewModel item : items) {
+            item.checkable = checkable;
+        }
     }
 
     /**
@@ -105,7 +107,7 @@ public class MyViewModel extends ViewModel {
     }
 
     public void addItem() {
-        items.add(new ItemViewModel(items.size(), checkable));
+        items.add(new ItemViewModel(items.size()));
     }
 
     public void removeItem() {

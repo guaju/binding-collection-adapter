@@ -4,6 +4,8 @@ import androidx.databinding.ObservableList;
 import androidx.databinding.ViewDataBinding;
 import androidx.annotation.LayoutRes;
 import androidx.annotation.Nullable;
+import androidx.lifecycle.LifecycleOwner;
+
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
 
@@ -22,6 +24,7 @@ public interface BindingCollectionAdapter<T> {
      */
     void setItemBinding(ItemBinding<T> itemBinding);
 
+    void setLifecycleOwner(LifecycleOwner lifecycleOwner);
 
     /**
      * Returns the {@link ItemBinding} that the adapter that was set.

@@ -1,14 +1,17 @@
 package me.tatarka.bindingcollectionadapter2;
 
-import androidx.databinding.BindingAdapter;
-import androidx.databinding.BindingConversion;
-import androidx.annotation.LayoutRes;
-import androidx.viewpager.widget.ViewPager;
 import android.widget.Adapter;
 import android.widget.AdapterView;
 import android.widget.WrapperListAdapter;
 
 import java.util.List;
+
+import androidx.annotation.LayoutRes;
+import androidx.databinding.BindingAdapter;
+import androidx.databinding.BindingConversion;
+import androidx.databinding.DataBindingUtil;
+import androidx.databinding.ViewDataBinding;
+import androidx.viewpager.widget.ViewPager;
 
 /**
  * All the BindingAdapters so that you can set your adapters and items directly in your layout.
@@ -37,6 +40,13 @@ public class BindingCollectionAdapters {
         adapter.setItemIsEnabled(itemIsEnabled);
 
         if (oldAdapter != adapter) {
+            if (adapter.getLifecycleOwner() == null) {
+                ViewDataBinding binding = DataBindingUtil.findBinding(adapterView);
+                if (binding != null) {
+                    adapter.setLifecycleOwner(Utils.getLifecycleOwner(binding));
+                }
+            }
+
             adapterView.setAdapter(adapter);
         }
     }
@@ -71,6 +81,13 @@ public class BindingCollectionAdapters {
         adapter.setPageTitles(pageTitles);
 
         if (oldAdapter != adapter) {
+            if (adapter.getLifecycleOwner() == null) {
+                ViewDataBinding binding = DataBindingUtil.findBinding(viewPager);
+                if (binding != null) {
+                    adapter.setLifecycleOwner(Utils.getLifecycleOwner(binding));
+                }
+            }
+
             viewPager.setAdapter(adapter);
         }
     }

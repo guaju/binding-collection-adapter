@@ -6,6 +6,8 @@ import androidx.databinding.ViewDataBinding;
 import androidx.annotation.LayoutRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.lifecycle.LifecycleOwner;
+
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -29,6 +31,7 @@ public class BindingListViewAdapter<T> extends BaseAdapter implements BindingCol
     private LayoutInflater inflater;
     private ItemIds<? super T> itemIds;
     private ItemIsEnabled<? super T> itemIsEnabled;
+    private final ItemLifecycleHelper lifecycleHelper = new ItemLifecycleHelper();
 
     /**
      * Constructs a new instance with the given item count.
@@ -40,6 +43,16 @@ public class BindingListViewAdapter<T> extends BaseAdapter implements BindingCol
     @Override
     public void setItemBinding(ItemBinding<T> itemBinding) {
         this.itemBinding = itemBinding;
+    }
+
+    @Override
+    public void setLifecycleOwner(LifecycleOwner lifecycleOwner) {
+        lifecycleHelper.setLifecycleOwner(lifecycleOwner);
+    }
+
+    @Nullable
+    public LifecycleOwner getLifecycleOwner() {
+        return lifecycleHelper.getLifecycleOwner();
     }
 
     @Override
@@ -125,7 +138,7 @@ public class BindingListViewAdapter<T> extends BaseAdapter implements BindingCol
     }
 
     @Override
-    public final View getView(int position, View convertView, @NonNull ViewGroup parent) {
+    public final View getView(int position, View convertView, ViewGroup parent) {
         if (inflater == null) {
             inflater = LayoutInflater.from(parent.getContext());
         }
@@ -136,14 +149,20 @@ public class BindingListViewAdapter<T> extends BaseAdapter implements BindingCol
         ViewDataBinding binding;
         if (convertView == null) {
             binding = onCreateBinding(inflater, layoutRes, parent);
+            binding.getRoot().addOnAttachStateChangeListener(new ViewAttachListener());
         } else {
             binding = DataBindingUtil.getBinding(convertView);
         }
 
+        View view = binding.getRoot();
+        lifecycleHelper.destroyItemLifecycle(view);
+
         T item = items.get(position);
         onBindBinding(binding, itemBinding.variableId(), layoutRes, position, item);
 
-        return binding.getRoot();
+        binding.setLifecycleOwner(lifecycleHelper.createItemLifecycle(view));
+
+        return view;
     }
 
     @Override
@@ -159,14 +178,22 @@ public class BindingListViewAdapter<T> extends BaseAdapter implements BindingCol
             ViewDataBinding binding;
             if (convertView == null) {
                 binding = onCreateBinding(inflater, layoutRes, parent);
+                binding.getRoot().addOnAttachStateChangeListener(new ViewAttachListener());
             } else {
                 binding = DataBindingUtil.getBinding(convertView);
             }
 
+            View view = binding.getRoot();
+            lifecycleHelper.destroyItemLifecycle(view);
+
             T item = items.get(position);
             onBindBinding(binding, itemBinding.variableId(), layoutRes, position, item);
 
-            return binding.getRoot();
+            binding.setLifecycleOwner(lifecycleHelper.createItemLifecycle(view));
+
+            lifecycleHelper.onAttachItem(view);
+
+            return view;
         }
     }
 
@@ -207,7 +234,7 @@ public class BindingListViewAdapter<T> extends BaseAdapter implements BindingCol
         return count;
     }
 
-    private static class WeakReferenceOnListChangedCallback<T> extends ObservableList.OnListChangedCallback<ObservableList<T>> {
+    static class WeakReferenceOnListChangedCallback<T> extends ObservableList.OnListChangedCallback<ObservableList<T>> {
         final WeakReference<BindingListViewAdapter<T>> adapterRef;
 
         WeakReferenceOnListChangedCallback(BindingListViewAdapter<T> adapter, ObservableList<T> items) {
@@ -242,6 +269,19 @@ public class BindingListViewAdapter<T> extends BaseAdapter implements BindingCol
         @Override
         public void onItemRangeRemoved(ObservableList sender, int positionStart, int itemCount) {
             onChanged(sender);
+        }
+    }
+
+    class ViewAttachListener implements View.OnAttachStateChangeListener {
+
+        @Override
+        public void onViewAttachedToWindow(View v) {
+            lifecycleHelper.onAttachItem(v);
+        }
+
+        @Override
+        public void onViewDetachedFromWindow(View v) {
+            lifecycleHelper.onDetachItem(v);
         }
     }
 

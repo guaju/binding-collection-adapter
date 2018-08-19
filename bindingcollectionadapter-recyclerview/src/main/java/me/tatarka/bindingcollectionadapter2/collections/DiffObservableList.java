@@ -3,7 +3,10 @@ package me.tatarka.bindingcollectionadapter2.collections;
 import androidx.databinding.ListChangeRegistry;
 import androidx.databinding.ObservableList;
 import androidx.annotation.MainThread;
+import androidx.recyclerview.widget.AsyncDifferConfig;
+import androidx.recyclerview.widget.AsyncListDiffer;
 import androidx.recyclerview.widget.DiffUtil;
+import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.ListUpdateCallback;
 
 import java.util.AbstractList;
